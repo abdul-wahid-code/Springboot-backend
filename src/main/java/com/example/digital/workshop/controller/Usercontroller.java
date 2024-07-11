@@ -1,6 +1,8 @@
 package com.example.digital.workshop.controller;
 
 import com.example.digital.workshop.dto.LoginRequest;
+import com.example.digital.workshop.dto.LoginResponse;
+import com.example.digital.workshop.model.Service;
 import com.example.digital.workshop.model.User;
 import com.example.digital.workshop.repository.Userrepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,22 +46,52 @@ public class Usercontroller {
     }
 
 
+    // Get a single service by ID
+    @GetMapping("/{userid}")
+    public ResponseEntity<User> getServiceById(@PathVariable Long userid) {
+        Optional<User> user = userrepo.findById(userid);
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+
+
+    @DeleteMapping("/{userid}")
+    public ResponseEntity<Void> deleteService(@PathVariable Long userid) {
+        Optional<User> user = userrepo.findById(userid);
+        if (user.isPresent()) {
+            userrepo.delete(user.get());
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
+
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         Optional<User> userOptional = userrepo.findByEmail(loginRequest.getEmail());
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (user.getPassword().equals(loginRequest.getPassword())) {
-                return ResponseEntity.ok().body("Login successful");
+                return ResponseEntity.ok(new LoginResponse(true, "Login successful"));
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, "Invalid password"));
             }
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new LoginResponse(false, "User not found"));
         }
     }
 
 
 
 }
+
+
+
